@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TV 편성표 - 전체 리스트</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; }
+        nav { margin-bottom: 20px; padding: 10px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        nav a { margin-right: 15px; text-decoration: none; color: #333; font-weight: bold; }
+        .controls { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; display: flex; gap: 20px; flex-wrap: wrap; }
+        .section { flex: 1; min-width: 300px; }
+        table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #3498db; color: #fff; }
+        tr:hover { background-color: #f9f9f9; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.8em; color: #fff; }
+        .badge-public { background: #27ae60; }
+        .badge-organization { background: #8e44ad; }
+        .badge-cable { background: #f39c12; }
+        select, input, button { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #3498db; color: #fff; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background: #2980b9; }
+        .label { font-size: 0.85em; color: #7f8c8d; margin-right: 5px; }
+        .no-data { text-align: center; padding: 50px; color: #7f8c8d; background: #fff; border-radius: 8px; }
+        
+        /* 태그 스타일 */
+        .tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 0.75em; font-weight: bold; margin-left: 4px; vertical-align: middle; }
+        .tag-live { background-color: #3498db; color: white; }
+        .tag-hd { background-color: #34495e; color: white; }
+        .tag-sub { background-color: #27ae60; color: white; }
+        .tag-rebroad { background-color: #f39c12; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="/">🏠 대시보드</a>
+            <a href="/list">📅 전체 편성표</a>
+        </nav>
+
+        <div class="controls">
+            <div class="section">
+                <h3>🔍 필터링 및 조회</h3>
+                <form action="/list" method="get" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <div>
+                        <span class="label">일자:</span>
+                        <input type="text" name="date" value="{{ selected_date }}" placeholder="YYYY_MM_DD" style="width: 120px;">
+                    </div>
+                    <div>
+                        <span class="label">채널:</span>
+                        <select name="channel">
+                            <option value="">모든 채널</option>
+                            {% for ch in channels %}
+                            <option value="{{ ch }}" {% if ch == selected_channel %}selected{% endif %}>{{ ch }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <span class="label">카테고리:</span>
+                        <select name="category">
+                            <option value="">모든 카테고리</option>
+                            <option value="public" {% if selected_category == 'public' %}selected{% endif %}>지상파</option>
+                            <option value="organization" {% if selected_category == 'organization' %}selected{% endif %}>종합편성</option>
+                            <option value="cable" {% if selected_category == 'cable' %}selected{% endif %}>케이블</option>
+                        </select>
+                    </div>
+                    <button type="submit">조회하기</button>
+                </form>
+            </div>
+            
+            <div class="section" style="border-left: 1px solid #eee; padding-left: 20px;">
+                <h3>🚀 새 데이터 크롤링</h3>
+                <form action="/scrape" method="post" style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" name="date" value="{{ selected_date }}" placeholder="YYYY_MM_DD" style="width: 120px;">
+                    <select name="category">
+                        <option value="all">전체</option>
+                        <option value="public">지상파</option>
+                        <option value="organization">종합편성</option>
+                        <option value="cable">케이블</option>
+                    </select>
+                    <button type="submit" style="background: #27ae60;" onclick="return confirm('크롤링을 시작하시겠습니까? (수분 소요)')">실행</button>
+                </form>
+            </div>
+        </div>
+
+        {% if guides %}
+        <div style="margin-bottom: 10px; color: #7f8c8d;">
+            조회 결과: <strong>{{ guides|length }}</strong> 건 ({{ selected_date }})
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>일자</th>
+                    <th>시간</th>
+                    <th>카테고리</th>
+                    <th>채널</th>
+                    <th>프로그램명</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for date, cat, channel, time, title in guides %}
+                <tr>
+                    <td style="color: #7f8c8d; font-size: 0.9em;">{{ date }}</td>
+                    <td style="font-weight: bold; color: #e67e22;">{{ time }}</td>
+                    <td><span class="badge badge-{{ cat }}">{{ cat }}</span></td>
+                    <td style="font-weight: bold;">{{ channel }}</td>
+                    <td>{{ title | format_tags | safe }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="no-data">
+            <h2>📭 데이터가 없습니다</h2>
+            <p><strong>{{ selected_date }}</strong> 일자의 편성표 데이터가 존재하지 않습니다.</p>
+            <p>우측의 '새 데이터 크롤링'을 통해 데이터를 먼저 수집해 주세요.</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

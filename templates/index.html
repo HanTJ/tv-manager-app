@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TV 편성표 - 현재 상영 중</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; }
+        nav { margin-bottom: 20px; padding: 10px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        nav a { margin-right: 15px; text-decoration: none; color: #333; font-weight: bold; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; }
+        .card:hover { transform: translateY(-5px); }
+        .channel-name { font-size: 1.2em; font-weight: bold; color: #2c3e50; margin-bottom: 10px; border-bottom: 2px solid #3498db; display: inline-block; }
+        .time { color: #e67e22; font-weight: bold; font-size: 0.9em; }
+        .program-title { font-size: 1.1em; color: #34495e; margin-top: 5px; line-height: 1.6; }
+        .now-badge { background: #e74c3c; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.7em; vertical-align: middle; margin-left: 5px; }
+        
+        /* 태그 스타일 */
+        .tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 0.75em; font-weight: bold; margin-left: 4px; vertical-align: middle; }
+        .tag-live { background-color: #3498db; color: white; }
+        .tag-hd { background-color: #34495e; color: white; }
+        .tag-sub { background-color: #27ae60; color: white; }
+        .tag-rebroad { background-color: #f39c12; color: white; }
+
+        /* 알림바 스타일 */
+        .alert { background-color: #e74c3c; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .alert-content { display: flex; align-items: center; gap: 10px; }
+        .alert-btn { background: white; color: #e74c3c; border: none; padding: 5px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="/">🏠 대시보드</a>
+            <a href="/list">📅 전체 편성표</a>
+        </nav>
+
+        {% if failed_job %}
+        <div class="alert">
+            <div class="alert-content">
+                <span>⚠️ <strong>자동 크롤링 실패:</strong> {{ failed_job[0] }} 일자 수집 중 오류가 발생했습니다. ({{ failed_job[2] }})</span>
+                <small style="opacity: 0.8;">| 사유: {{ failed_job[1] }}</small>
+            </div>
+            <a href="/list?date={{ failed_job[0] }}" style="text-decoration: none;"><button class="alert-btn">조회/재시도</button></a>
+        </div>
+        {% endif %}
+        
+        <div class="header">
+            <h1>현재 상영 중인 프로그램</h1>
+            <div>
+                <span style="font-size: 1.1em; color: #7f8c8d;">기준 시간: {{ current_date }} {{ current_time }}</span>
+            </div>
+        </div>
+
+        <div class="grid">
+            {% for channel, time, title in now_playing %}
+            <div class="card">
+                <div class="channel-name">{{ channel }}</div>
+                <div>
+                    <span class="time">{{ time }}</span>
+                    <span class="now-badge">ON AIR</span>
+                </div>
+                <div class="program-title">{{ title | format_tags | safe }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if not now_playing %}
+        <div style="text-align: center; margin-top: 50px; color: #7f8c8d;">
+            <h3>현재 상영 중인 데이터가 없습니다. 먼저 크롤링을 실행해 주세요.</h3>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
