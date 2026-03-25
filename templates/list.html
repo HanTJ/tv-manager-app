@@ -41,10 +41,11 @@
         <div class="controls">
             <div class="section">
                 <h3>🔍 필터링 및 조회</h3>
-                <form action="/list" method="get" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <form action="/list" method="get" id="filterForm" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                     <div>
                         <span class="label">일자:</span>
-                        <input type="text" name="date" value="{{ selected_date }}" placeholder="YYYY_MM_DD" style="width: 120px;">
+                        <input type="date" id="filter_date_picker" value="{{ selected_date.replace('_', '-') }}" style="width: 130px;">
+                        <input type="hidden" name="date" id="filter_date_value" value="{{ selected_date }}">
                     </div>
                     <div>
                         <span class="label">채널:</span>
@@ -70,8 +71,9 @@
             
             <div class="section" style="border-left: 1px solid #eee; padding-left: 20px;">
                 <h3>🚀 새 데이터 크롤링</h3>
-                <form action="/scrape" method="post" style="display: flex; gap: 10px; align-items: center;">
-                    <input type="text" name="date" value="{{ selected_date }}" placeholder="YYYY_MM_DD" style="width: 120px;">
+                <form action="/scrape" method="post" id="scrapeForm" style="display: flex; gap: 10px; align-items: center;">
+                    <input type="date" id="scrape_date_picker" value="{{ selected_date.replace('_', '-') }}" style="width: 130px;">
+                    <input type="hidden" name="date" id="scrape_date_value" value="{{ selected_date }}">
                     <select name="category">
                         <option value="all">전체</option>
                         <option value="public">지상파</option>
@@ -82,6 +84,20 @@
                 </form>
             </div>
         </div>
+
+        <script>
+            // 폼 전송 시 날짜 형식을 YYYY_MM_DD 로 변환
+            function handleFormDate(formId, pickerId, hiddenId) {
+                document.getElementById(formId).addEventListener('submit', function(e) {
+                    const picker = document.getElementById(pickerId);
+                    const hidden = document.getElementById(hiddenId);
+                    hidden.value = picker.value.replace(/-/g, '_');
+                });
+            }
+            
+            handleFormDate('filterForm', 'filter_date_picker', 'filter_date_value');
+            handleFormDate('scrapeForm', 'scrape_date_picker', 'scrape_date_value');
+        </script>
 
         {% if guides %}
         <div style="margin-bottom: 10px; color: #7f8c8d;">

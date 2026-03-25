@@ -48,10 +48,25 @@
         
         <div class="header">
             <h1>현재 상영 중인 프로그램</h1>
-            <div>
-                <span style="font-size: 1.1em; color: #7f8c8d;">기준 시간: {{ current_date }} {{ current_time }}</span>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <form action="/" method="get" id="dateForm" style="display: flex; gap: 5px; align-items: center;">
+                    <span class="label" style="font-size: 0.9em; color: #7f8c8d;">조회 일자:</span>
+                    <input type="date" id="date_picker" value="{{ current_date.replace('_', '-') }}" style="padding: 5px; border-radius: 4px; border: 1px solid #ddd;">
+                    <input type="hidden" name="date" id="date_value" value="{{ current_date }}">
+                    <button type="submit" style="padding: 5px 10px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em;">조회</button>
+                </form>
+                <span style="font-size: 1.1em; color: #7f8c8d; border-left: 1px solid #ddd; padding-left: 15px;">기준 시간: {{ current_date }} {{ current_time }}</span>
             </div>
         </div>
+
+        <script>
+            document.getElementById('dateForm').addEventListener('submit', function(e) {
+                const picker = document.getElementById('date_picker');
+                const hiddenDate = document.getElementById('date_value');
+                // YYYY-MM-DD 를 YYYY_MM_DD 로 변환
+                hiddenDate.value = picker.value.replace(/-/g, '_');
+            });
+        </script>
 
         <div class="grid">
             {% for channel, time, title in now_playing %}

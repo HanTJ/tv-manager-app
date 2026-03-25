@@ -34,10 +34,10 @@ def format_title_with_tags(title: str):
 templates.env.filters["format_tags"] = format_title_with_tags
 
 @app.get("/", response_class=HTMLResponse)
-async def read_dashboard(request: Request):
+async def read_dashboard(request: Request, date: str = Query(None)):
     now = datetime.now()
-    # 3월 23일 고정 해제하고 현재 날짜 기준으로 변경 가능하나, 현재 데이터가 3월 23일에 많으므로 유지
-    current_date = "2026_03_23" 
+    # 파라미터로 날짜가 들어오면 해당 날짜 사용, 없으면 오늘 날짜 사용
+    current_date = date if date else now.strftime("%Y_%m_%d")
     current_time = now.strftime("%H:%M")
     
     now_playing = get_now_playing(current_date, current_time)
@@ -57,7 +57,7 @@ async def read_dashboard(request: Request):
 @app.get("/list", response_class=HTMLResponse)
 async def read_list(request: Request, date: str = Query(None), channel: str = None, category: str = None):
     if date is None:
-        date = "2026_03_23"
+        date = datetime.now().strftime("%Y_%m_%d")
         
     channels = get_channels()
     guides = get_filtered_guide(date=date, channel=channel, category=category)
