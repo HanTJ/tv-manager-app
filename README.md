@@ -45,8 +45,13 @@ uv add requests beautifulsoup4 pytest fastapi uvicorn jinja2 python-multipart ap
 uv run main.py 2026_03_23 public
 ```
 
+## 🛡️ 데이터 정합성 보장 (중복 방지)
+- **고유 제약 조건**: `tv_guide` 테이블에 `(date, channel, time)` 기준의 `UNIQUE` 인덱스를 적용하여 동일 시간대의 중복 데이터 적재를 원천 차단합니다.
+- **자동 업데이트**: 스크래핑 과정에서 동일한 키의 데이터가 들어올 경우 `INSERT OR REPLACE` 로직을 통해 기존 데이터를 최신 정보로 갱신하여 데이터 무결성을 유지합니다.
+
 ## 📊 데이터베이스 구조 (tvguide.db)
 - `tv_guide`: 편성 정보 (date, category, channel, time, title)
+  - *제약 조건: (date, channel, time) UNIQUE*
 - `job_logs`: 작업 이력 (job_name, target_date, status, message, timestamp)
 
 ## 🧪 테스트

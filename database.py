@@ -9,17 +9,24 @@ def setup_database():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
-    # 편성표 테이블
+    # 편성표 테이블 (date, channel, time 조합에 UNIQUE 인덱스 추가)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS tv_guide (
             date TEXT,
             category TEXT,
             channel TEXT,
             time TEXT,
-            title TEXT
+            title TEXT,
+            UNIQUE(date, channel, time) ON CONFLICT REPLACE
         )
     """)
     
+    # 기존 테이블이 있는 경우를 대비해 UNIQUE 인덱스 별도 생성 (이미 있으면 무시)
+    try:
+        cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_tv_guide_unique ON tv_guide(date, channel, time)")
+    except Exception:
+        pass
+
     # 작업 로그 테이블 (스케줄링 상태 기록용)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS job_logs (
@@ -80,7 +87,7 @@ def save_tv_guide(data_list):
     cursor = conn.cursor()
     try:
         cursor.executemany(
-            "INSERT INTO tv_guide (date, category, channel, time, title) VALUES (?, ?, ?, ?, ?)", 
+            "INSERT OR REPLACE INTO tv_guide (date, category, channel, time, title) VALUES (?, ?, ?, ?, ?)", 
             data_list
         )
         conn.commit()
